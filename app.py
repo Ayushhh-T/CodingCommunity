@@ -1,8 +1,7 @@
-from flask import Flask, render_template, request, redirect, session
+from flask import Flask, render_template, request, redirect
 import mysql.connector
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key_here'
 
 # Connect to the database
 db = mysql.connector.connect(
@@ -39,8 +38,8 @@ def add_user():
         cursor = db.cursor()
         cursor.execute("SELECT COUNT(*) FROM user_profiles WHERE email = %s", (email,))
         if cursor.fetchone()[0] > 0:
-            session['email_error'] = 'Email already exists. Please enter a different email address.'
-            return redirect("/add_user")
+            email_error = 'Email already exists. Please enter a different email address.'
+            return render_template("add_user.html", email_error=email_error)
 
         # Insert into the database
         cursor.execute("INSERT INTO user_profiles (username, email, skill, city) VALUES (%s, %s, %s, %s)", (username, email, skill, city))
@@ -48,8 +47,6 @@ def add_user():
 
         return redirect("/")
     else:
-        # Clear any existing error messages
-        session.pop('email_error', None)
         return render_template("add_user.html")
 
 @app.route('/about_us')
@@ -63,7 +60,6 @@ def check_email(email):
         return "exists"
     else:
         return ""
-
 
 if __name__ == "__main__":
     app.run(debug=True)
